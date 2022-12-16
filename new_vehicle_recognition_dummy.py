@@ -43,11 +43,25 @@ def caculate_fps():
 
 
 def vehicle_event_recognition(frame,neural_net,execution_net,input,output,detection_area):
+    #B - batch size
+    #C - number of channels
+    #H - image height
+    #W - image width
+    #obtiene parametros del modelo
+    B, C, H, W = neural_net.input_info[input].tensor_desc.dims 
     #paso 2 redimensionar el frame
-    B, C, H, W = neural_net.input_info
-    return frame
+    #redimensiona el frame de acuerdo a los parametros del modelo
+    resized_frame = cv2.resize(frame, (W, H))
+    #setea altura y ancho en base a las dimensiones de la matriz frame
+    initial_h, initial_w, _ = frame.shape
 
 
+def drawText(frame, scale, rectX, rectY, rectColor, text):
+    #funcion para escribir texto en imagen
+    rectThickness = 2
+    textSize, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, scale, 3)
+    top = max(rectY - rectThickness, textSize[0])
+    cv2.putText(frame, text, (rectX, top), cv2.FONT_HERSHEY_SIMPLEX, scale, rectColor, 3)
 
 
 def main():
@@ -66,4 +80,11 @@ def main():
     vidcap.release()
     cv2.destroyAllWindows()
 
-caculate_fps()
+
+def prueba_numpy():
+    lista = [1,2,3,4]
+    listanp = np.array(lista)
+    print(lista)
+    print(listanp)
+
+prueba_numpy()
