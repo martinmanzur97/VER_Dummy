@@ -8,6 +8,7 @@ import time
 video_path = "../BlindspotFront.mp4"
 model_xml = "./model/person-detection-0303.xml"
 model_bin = "./model/person-detection-0303.bin"
+device = "CPU"
 
 
 def crop_frame(x):
@@ -54,6 +55,8 @@ def vehicle_event_recognition(frame,neural_net,execution_net,input,output,detect
     resized_frame = cv2.resize(frame, (W, H))
     #setea altura y ancho en base a las dimensiones de la matriz frame
     initial_h, initial_w, _ = frame.shape
+    input_image = np.expand_dims(resized_frame.transpose(2, 0, 1), 0)
+
 
 
 def drawText(frame, scale, rectX, rectY, rectColor, text):
@@ -65,11 +68,25 @@ def drawText(frame, scale, rectX, rectY, rectColor, text):
 
 
 def main():
+
+    ie = IECore()
+
+    ver_neural_net = ie.read_network(model=model_xml, weights=model_bin)
+    ver_execution_net = ie.load_network(network=ver_neural_net, device_name=device.upper())
+    ver_input_blob = next(iter(ver_execution_net.input_info))
+    print(type(ver_input_blob))
+    car_pedestrian_output_blob = next(iter(ver_execution_net.outputs))
+    ver_neural_net.batch_size = 1
+
+
+    
+
     #paso 1 capturar frame
     vidcap = cv2.VideoCapture(video_path)
     #success, img = vidcap.read()
     #while success:
     while (vidcap.isOpened()):
+
         success, img = vidcap.read()
         if success == True:
             cv2.imshow('video', img)
@@ -80,11 +97,32 @@ def main():
     vidcap.release()
     cv2.destroyAllWindows()
 
+#paso 3 recortar imagen con opencv
+def crop(img_path):
+    import cv2
+    img = cv2.imread(img_path)
+    crop_img = img[y:y+h, x:x+w]
+    cv2.imshow("cropped", crop_img)
+    cv2.waitKey(0)
+
+
+
+
+
+
 
 def prueba_numpy():
-    lista = [1,2,3,4]
+    # lista = [1,2,3,4]
+    #lista = [[1,2],2,[6,5,4],4,5]
+    #lista =[[2,1],[5,4]]
+    lista = []
     listanp = np.array(lista)
-    print(lista)
-    print(listanp)
+    shapes = np.shape(lista)
+    shapesnp = np.shape(listanp)
+
+    print(shapes)
+    print(shapesnp)
 
 prueba_numpy()
+
+type
