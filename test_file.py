@@ -18,4 +18,10 @@ def prueba_numpy():
 
     nueva = np.expand_dims(x, axis=0)
 
-prueba_numpy
+def fps_counter():
+    fps = int(vidcap.get(cv2.CAP_PROP_FPS)) # Acces FPS property
+    font = cv2.FONT_HERSHEY_SIMPLEX # Font to apply on text
+    cv2.putText(img, str(fps), (50,50), font, 1, (0, 0, 255), 2) # Add text on frame
+
+
+prueba_numpy()

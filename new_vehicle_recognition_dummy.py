@@ -4,6 +4,7 @@ from openvino.inference_engine import IECore
 import imutils
 import numpy as np
 import time
+import datetime
 
 #video_path = "./video/in.mp4"
 video_path = "../BlindspotFront.mp4"
@@ -46,9 +47,6 @@ def crop_frame(x):
     #paso 3 recortar frame
     return x 
 
-def define_area(x):
-    return x
-
 def check_detection_area(x, y, detection_area):
     if len(detection_area) != 2:
         raise ValueError("Invalid number of points in detection area")
@@ -86,12 +84,9 @@ def caculate_fps():
     capture.release()
 
 
-def vehicle_event_recognition(frame,neural_net,execution_net,ver_input,ver_output, detection area):
-    #B - batch size
-    #C - number of channels
-    #H - image height
-    #W - image width
+def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_output, detection_area):
     #obtiene parametros del modelo
+    #B - batch size, C - number of channels, H - image height, W - image width
     B, C, H, W = neural_net.input_info[ver_input].tensor_desc.dims 
     #paso 2 redimensionar el frame
     #redimensiona el frame de acuerdo a los parametros del modelo
@@ -102,8 +97,6 @@ def vehicle_event_recognition(frame,neural_net,execution_net,ver_input,ver_outpu
     input_image = np.expand_dims(resized_frame.transpose(2, 0, 1), 0)
 
     ver_results = execution_net.infer(inputs={ver_input: input_image}).get(ver_output)
-
-    print(type(ver_results))
 
     for detection in ver_results[0][0]:
         label = int(detection[1])
@@ -149,27 +142,18 @@ def main():
     ver_neural_net = ie.read_network(model=model_xml, weights=model_bin)
     ver_execution_net = ie.load_network(network=ver_neural_net, device_name=device.upper())
     ver_input_blob = next(iter(ver_execution_net.input_info))
-    print(type(ver_input_blob))
     ver_output_blob = next(iter(ver_execution_net.outputs))
     ver_neural_net.batch_size = 1
 
-
     #paso 1 capturar frame
-    success, img = vidcap.read()
     vidcap = cv2.VideoCapture(video_path)
+    success, img = vidcap.read()
     detection = define_area(img)
-    #while success:
-    while (vidcap.isOpened()):
-        success, img = vidcap.read()
+    while success:
         vehicle_event_recognition(img,ver_neural_net,ver_execution_net,ver_input_blob,ver_output_blob, detection)
-        if success == True:
-            cv2.imshow('video', img)
-            if cv2.waitKey(30) == 27:   
-                break
-        else:
+        if cv2.waitKey(10) == 27:  # exit if Escape is hit
             break
-    vidcap.release()
-    cv2.destroyAllWindows()
+        success, img = vidcap.read()
 
 #paso 3 recortar imagen con opencv
 def crop(img_path):
