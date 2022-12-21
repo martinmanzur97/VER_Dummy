@@ -1,15 +1,46 @@
 import cv2
 import openvino
+from openvino.inference_engine import IECore
 import imutils
 import numpy as np
 import time
 
 #video_path = "./video/in.mp4"
 video_path = "../BlindspotFront.mp4"
-model_xml = "./model/person-detection-0303.xml"
-model_bin = "./model/person-detection-0303.bin"
+model_xml = "./model/pedestrian-and-vehicle-detector-adas-0001.xml"
+model_bin = "./model/pedestrian-and-vehicle-detector-adas-0001.bin"
 device = "CPU"
+BLUE = (255, 0, 0)
+RED = (0, 0, 255)
+confidence_threshold = 0.6
 
+def define_area(frame):
+    #PASO
+    # By default, keep the original frame and select complete area
+    frame_height, frame_width = frame.shape[:-1]
+    detection_area = [[0, 0], [frame_width, frame_height]]
+    top_left_crop = (0, 0)
+    bottom_right_crop = (frame_width, frame_height)
+    # Select detection area
+    window_name_roi = "Select Detection Area."
+    roi = cv2.selectROI(window_name_roi, frame, False)
+    cv2.destroyAllWindows()
+    if int(roi[2]) != 0 and int(roi[3]) != 0:
+        x_tl, y_tl = int(roi[0]), int(roi[1])
+        x_br, y_br = int(roi[0] + roi[2]), int(roi[1] + roi[3])
+        detection_area = [
+            (x_tl, y_tl),
+            (x_br, y_br),
+        ]
+    else:
+        detection_area = [
+            (0, 0),
+            (
+                bottom_right_crop[0] - top_left_crop[0],
+                bottom_right_crop[1] - top_left_crop[1],
+            ),
+        ]
+    return detection_area
 
 def crop_frame(x):
     #paso 3 recortar frame
@@ -17,6 +48,18 @@ def crop_frame(x):
 
 def define_area(x):
     return x
+
+def check_detection_area(x, y, detection_area):
+    if len(detection_area) != 2:
+        raise ValueError("Invalid number of points in detection area")
+    top_left = detection_area[0]
+    bottom_right = detection_area[1]
+    # Get coordinates
+    xmin, ymin = top_left[0], top_left[1]
+    xmax, ymax = bottom_right[0], bottom_right[1]
+    # Check if the point is inside a ROI
+    return xmin < x and x < xmax and ymin < y and y < ymax
+
 
 def caculate_fps():
     fps_start = 0
@@ -43,19 +86,51 @@ def caculate_fps():
     capture.release()
 
 
-def vehicle_event_recognition(frame,neural_net,execution_net,input,output,detection_area):
+def vehicle_event_recognition(frame,neural_net,execution_net,ver_input,ver_output, detection area):
     #B - batch size
     #C - number of channels
     #H - image height
     #W - image width
     #obtiene parametros del modelo
-    B, C, H, W = neural_net.input_info[input].tensor_desc.dims 
+    B, C, H, W = neural_net.input_info[ver_input].tensor_desc.dims 
     #paso 2 redimensionar el frame
     #redimensiona el frame de acuerdo a los parametros del modelo
     resized_frame = cv2.resize(frame, (W, H))
     #setea altura y ancho en base a las dimensiones de la matriz frame
     initial_h, initial_w, _ = frame.shape
+
     input_image = np.expand_dims(resized_frame.transpose(2, 0, 1), 0)
+
+    ver_results = execution_net.infer(inputs={ver_input: input_image}).get(ver_output)
+
+    print(type(ver_results))
+
+    for detection in ver_results[0][0]:
+        label = int(detection[1])
+        accuracy = float(detection[2])
+        det_color = BLUE if label == 1 else RED
+        # Draw only objects when accuracy is greater than configured threshold
+        if accuracy > confidence_threshold:
+            xmin = int(detection[3] * initial_w)
+            ymin = int(detection[4] * initial_h)
+            xmax = int(detection[5] * initial_w)
+            ymax = int(detection[6] * initial_h)
+            # Central points of detection
+            x = (xmin + xmax) / 2
+            y = (ymin + ymax) / 2
+
+            # Check if central points fall inside the detection area
+            if check_detection_area(x, y, detection_area):
+                cv2.rectangle(
+                    frame,
+                    (xmin, ymin),
+                    (xmax, ymax),
+                    det_color,
+                    thickness=2,
+                )
+
+    showImg = imutils.resize(frame, height=600)
+    cv2.imshow("showImg", showImg)
 
 
 
@@ -75,19 +150,18 @@ def main():
     ver_execution_net = ie.load_network(network=ver_neural_net, device_name=device.upper())
     ver_input_blob = next(iter(ver_execution_net.input_info))
     print(type(ver_input_blob))
-    car_pedestrian_output_blob = next(iter(ver_execution_net.outputs))
+    ver_output_blob = next(iter(ver_execution_net.outputs))
     ver_neural_net.batch_size = 1
 
 
-    
-
     #paso 1 capturar frame
+    success, img = vidcap.read()
     vidcap = cv2.VideoCapture(video_path)
-    #success, img = vidcap.read()
+    detection = define_area(img)
     #while success:
     while (vidcap.isOpened()):
-
         success, img = vidcap.read()
+        vehicle_event_recognition(img,ver_neural_net,ver_execution_net,ver_input_blob,ver_output_blob, detection)
         if success == True:
             cv2.imshow('video', img)
             if cv2.waitKey(30) == 27:   
@@ -106,23 +180,4 @@ def crop(img_path):
     cv2.waitKey(0)
 
 
-
-
-
-
-
-def prueba_numpy():
-    # lista = [1,2,3,4]
-    #lista = [[1,2],2,[6,5,4],4,5]
-    #lista =[[2,1],[5,4]]
-    lista = []
-    listanp = np.array(lista)
-    shapes = np.shape(lista)
-    shapesnp = np.shape(listanp)
-
-    print(shapes)
-    print(shapesnp)
-
-prueba_numpy()
-
-type
+main()
