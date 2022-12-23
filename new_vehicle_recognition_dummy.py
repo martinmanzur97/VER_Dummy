@@ -15,8 +15,8 @@ BLUE = (255, 0, 0)
 RED = (0, 0, 255)
 confidence_threshold = 0.6
 
-def define_area(frame):
-    #PASO
+def crop_frame(frame):
+    # paso 3 recortar el frame
     # By default, keep the original frame and select complete area
     frame_height, frame_width = frame.shape[:-1]
     detection_area = [[0, 0], [frame_width, frame_height]]
@@ -34,36 +34,28 @@ def define_area(frame):
             (x_br, y_br),
         ]
     else:
-        detection_area = [
-            (0, 0),
-            (
-                bottom_right_crop[0] - top_left_crop[0],
-                bottom_right_crop[1] - top_left_crop[1],
-            ),
-        ]
+        detection_area = [(0, 0),(bottom_right_crop[0] - top_left_crop[0],bottom_right_crop[1] - top_left_crop[1],),]
     return detection_area
 
-def crop_frame(x):
-    #paso 3 recortar frame
-    return x 
-
 def check_detection_area(x, y, detection_area):
+    #verifica que el area de deteccion tenga tamaño 2 si no tira error
     if len(detection_area) != 2:
         raise ValueError("Invalid number of points in detection area")
+    #establece limites del area
     top_left = detection_area[0]
     bottom_right = detection_area[1]
-    # Get coordinates
+    #en base a los 
     xmin, ymin = top_left[0], top_left[1]
     xmax, ymax = bottom_right[0], bottom_right[1]
     # Check if the point is inside a ROI
     return xmin < x and x < xmax and ymin < y and y < ymax
 
 
-def caculate_fps():
+def caculate_fps(path):
     fps_start = 0
     fps_counter = 0
 
-    capture = cv2.VideoCapture(video_path)
+    capture = cv2.VideoCapture(path)
 
     while True:
         rec , frame = capture.read()
@@ -93,10 +85,12 @@ def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_o
     resized_frame = cv2.resize(frame, (W, H))
     #setea altura y ancho en base a las dimensiones de la matriz frame
     initial_h, initial_w, _ = frame.shape
-
-    input_image = np.expand_dims(resized_frame.transpose(2, 0, 1), 0)
-
-    ver_results = execution_net.infer(inputs={ver_input: input_image}).get(ver_output)
+    #formatea la matriz para que tenga la forma especificada en el modelo 
+    #dejando el elemento 3 primero, 1 segundo, y 2 tercero y 
+    #luego agregando uno nuevo en posicion 1
+    resized_image = np.expand_dims(resized_frame.transpose(2, 0, 1), 0)
+    
+    ver_results = execution_net.infer(inputs={ver_input: resized_image}).get(ver_output)
 
     for detection in ver_results[0][0]:
         label = int(detection[1])
@@ -137,6 +131,7 @@ def drawText(frame, scale, rectX, rectY, rectColor, text):
 
 def main():
 
+    #se instancia un objeto IEcore para trabajar con openvino
     ie = IECore()
 
     ver_neural_net = ie.read_network(model=model_xml, weights=model_bin)
@@ -145,15 +140,19 @@ def main():
     ver_output_blob = next(iter(ver_execution_net.outputs))
     ver_neural_net.batch_size = 1
 
-    #paso 1 capturar frame
+    #paso 1 capturar frame utilizando un video como archivo de origen el video_path
     vidcap = cv2.VideoCapture(video_path)
+    #devuelve tupla con booleano y los datos del frame en forma de matriz
     success, img = vidcap.read()
-    detection = define_area(img)
+    #recorta el frame estableciendo el area de deteccion
+    detection = crop_frame(img)
+    #mientras haya obtenido el frame de manera correcta
     while success:
         vehicle_event_recognition(img,ver_neural_net,ver_execution_net,ver_input_blob,ver_output_blob, detection)
         if cv2.waitKey(10) == 27:  # exit if Escape is hit
             break
         success, img = vidcap.read()
+
 
 #paso 3 recortar imagen con opencv
 def crop(img_path):
