@@ -1,15 +1,15 @@
-USE_CASE=VER_DUMMY
+USE_CASE=VER_Dummy
+VE=source $(REPO_FOLDER)/$(UC_VIRTUAL_ENV)/bin/activate
+PYTHON=python3
+PIP=pip3
+SHELL := /bin/bash
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+export VIRTUAL_ENV = .env
 
--include src/common.mk
--include src/middleware.mk
+download_models:
+	./model/download_model.sh $(USE_CASE) python person-detection-0303
 
-update:
-	# Clone or update Submodules
-	git checkout $(BRANCH)
-	git pull origin $(BRANCH) && git submodule update --init --recursive
-
-download_models::
-	./src/scripts/download_model.sh $(USE_CASE) python pedestrian-and-vehicle-detector-adas-0001
-	./src/scripts/download_model.sh $(USE_CASE) python road-segmentation-adas-0001
-	./src/scripts/download_model.sh $(USE_CASE) python semantic-segmentation-adas-0001
+virtualenv:
+	@echo " ⚙️  Creating Virtual Environment"
+	@sudo -A chmod 755 $(MIDDLEWARE_FOLDER)/scripts/config_virtual_env.sh
+	$(MIDDLEWARE_FOLDER)/scripts/config_virtual_env.sh $(PIP) $(PYTHON) $(VIRTUAL_ENV) $(USE_CASE)
