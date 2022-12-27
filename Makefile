@@ -16,3 +16,5 @@ virtualenv:
 startvirtualenv:
 	@echo "Activating Virtual Enviroment"
 	$(VE)
+
+start: download_models virtualenv startvirtualenv
