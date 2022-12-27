@@ -9,9 +9,9 @@ import datetime
 #video_path = "./video/in.mp4"
 video_path = "../BlindspotFront.mp4"
 model_xml = "./model/person-detection-0303.xml"
-model_bin =
-#model_xml = "./model/pedestrian-and-vehicle-detector-adas-0001.xml"
-#model_bin = "./model/pedestrian-and-vehicle-detector-adas-0001.bin"
+model_bin = "./model/person-detection-0303.bin"
+# model_xml = "./model/pedestrian-and-vehicle-detector-adas-0001.xml"
+# model_bin = "./model/pedestrian-and-vehicle-detector-adas-0001.bin"
 device = "CPU"
 BLUE = (255, 0, 0)
 RED = (0, 0, 255)
@@ -93,6 +93,41 @@ def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_o
     resized_image = np.expand_dims(resized_frame.transpose(2, 0, 1), 0)
     
     ver_results = execution_net.infer(inputs={ver_input: resized_image}).get(ver_output)
+    print(ver_results)
+    # print(type(ver_results))
+    # print(type(ver_results[0]))
+    # print(ver_results[0])
+    # print(ver_results[-1])
+    # print(len(ver_results))
+    exit(0)
+    for detection in ver_results[0][0]:
+        label = int(detection[1])
+        accuracy = float(detection[2])
+        det_color = BLUE if label == 1 else RED
+        # Draw only objects when accuracy is greater than configured threshold
+        if accuracy > confidence_threshold:
+            xmin = int(detection[3] * initial_w)
+            ymin = int(detection[4] * initial_h)
+            xmax = int(detection[5] * initial_w)
+            ymax = int(detection[6] * initial_h)
+            # Central points of detection
+            x = (xmin + xmax) / 2
+            y = (ymin + ymax) / 2
+
+            # Check if central points fall inside the detection area
+            if check_detection_area(x, y, detection_area):
+                cv2.rectangle(
+                    frame,
+                    (xmin, ymin),
+                    (xmax, ymax),
+                    det_color,
+                    thickness=2,
+                )
+
+    showImg = imutils.resize(frame, height=600)
+    cv2.imshow("showImg", showImg)
+
+def detection2021(ver_results):
 
     for detection in ver_results[0][0]:
         label = int(detection[1])
@@ -120,6 +155,7 @@ def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_o
 
     showImg = imutils.resize(frame, height=600)
     cv2.imshow("showImg", showImg)
+
 
 
 

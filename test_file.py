@@ -11,14 +11,19 @@ def prueba_numpy():
     # lista = [1,2,3,4]
     #lista = [[1,2],2,[6,5,4],4,5]
 
-    lista =[[2,1],[5,4]]
+    lista =[[2,1],[5,4],[1,2,3,4,5]]
     x = [2,1]
 
-    listanp = np.array(lista)
+    listanp = np.array(lista,dtype=object)
+    shape1 = np.asarray(lista).shape
     shapes = np.shape(lista)
     shapesnp = np.shape(listanp)
 
     nueva = np.expand_dims(x, axis=0)
+    # print(listanp)
+    print(shape1)
+
+prueba_numpy()
 
 def fps_counter():
     fps = int(vidcap.get(cv2.CAP_PROP_FPS)) # Acces FPS property
@@ -34,8 +39,9 @@ def frames2():
     prev_frame_time = 0
     new_frame_time = 0
     #FPS Counter
+    ret = True
     if not ret:
-        break
+        exit(0)
     gray = frame
     gray = cv2.resize(gray, (500, 300))
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -45,5 +51,3 @@ def frames2():
     fps = int(fps)
     fps = str(fps)
     cv2.putText(gray, fps, (7, 70), font, 2, (100, 255, 0), 3, cv2.LINE_AA)
-
-prueba()
