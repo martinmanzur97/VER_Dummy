@@ -8,8 +8,10 @@ import datetime
 
 #video_path = "./video/in.mp4"
 video_path = "../BlindspotFront.mp4"
-model_xml = "./model/pedestrian-and-vehicle-detector-adas-0001.xml"
-model_bin = "./model/pedestrian-and-vehicle-detector-adas-0001.bin"
+model_xml = "./model/person-detection-0303.xml"
+model_bin =
+#model_xml = "./model/pedestrian-and-vehicle-detector-adas-0001.xml"
+#model_bin = "./model/pedestrian-and-vehicle-detector-adas-0001.bin"
 device = "CPU"
 BLUE = (255, 0, 0)
 RED = (0, 0, 255)
