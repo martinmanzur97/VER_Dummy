@@ -17,4 +17,7 @@ startvirtualenv:
 	@echo "Activating Virtual Enviroment"
 	$(VE)
 
-start: download_models virtualenv startvirtualenv
+run:
+	$(PYTHON) $(REPO_FOLDER)/new_vehicle_recognition_dummy.py
+
+start: download_models virtualenv startvirtualenv run

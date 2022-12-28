@@ -99,8 +99,8 @@ def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_o
     # print(ver_results[0])
     # print(ver_results[-1])
     # print(len(ver_results))
-    exit(0)
-    for detection in ver_results[0][0]:
+
+    for detection in ver_results:
         label = int(detection[1])
         accuracy = float(detection[2])
         det_color = BLUE if label == 1 else RED
@@ -129,7 +129,7 @@ def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_o
 
 def detection2021(ver_results):
 
-    for detection in ver_results[0][0]:
+    for detection in ver_results[0]:
         label = int(detection[1])
         accuracy = float(detection[2])
         det_color = BLUE if label == 1 else RED
