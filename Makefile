@@ -1,5 +1,4 @@
 export REPO_FOLDER=$(PWD)
-VE=source $(REPO_FOLDER)/env/bin/activate
 PYTHON=python3
 PIP=pip3
 SHELL := /bin/bash
@@ -9,15 +8,14 @@ export VIRTUAL_ENV = .env
 download_models::
 	./scripts/download_model.sh person-detection-0303
 
-virtualenv:
-	@echo "Creating Virtual Environment"
+run_enviroment:
+	@echo "Creating and Activating Virtual Environment"
 	$(MIDDLEWARE_FOLDER)/scripts/config_virtual_env.sh $(PIP) $(PYTHON) $(VIRTUAL_ENV)
 
-startvirtualenv:
-	@echo "Activating Virtual Enviroment"
-	$(VE)
-
-run:
+run-file:
 	$(PYTHON) $(REPO_FOLDER)/new_vehicle_recognition_dummy.py
 
-start: download_models virtualenv startvirtualenv run
+test:
+	$(PYTHON) $(REPO_FOLDER)/test_file.py
+
+start: download_models run_enviroment run-file

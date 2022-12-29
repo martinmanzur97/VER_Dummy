@@ -15,7 +15,7 @@ model_bin = "./model/person-detection-0303.bin"
 device = "CPU"
 BLUE = (255, 0, 0)
 RED = (0, 0, 255)
-confidence_threshold = 0.6
+confidence = 0.6
 
 def crop_frame(frame):
     # paso 3 recortar el frame
@@ -79,11 +79,9 @@ def caculate_fps(path):
 
 
 def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_output, detection_area):
-    #obtiene parametros del modelo
-    #B - batch size, C - number of channels, H - image height, W - image width
+    #obtiene parametros del modelo, B - batch size, C - number of channels, H - image height, W - image width
     B, C, H, W = neural_net.input_info[ver_input].tensor_desc.dims 
-    #paso 2 redimensionar el frame
-    #redimensiona el frame de acuerdo a los parametros del modelo
+    #paso 2 redimensionar el frame - redimensiona el frame de acuerdo a los parametros del modelo
     resized_frame = cv2.resize(frame, (W, H))
     #setea altura y ancho en base a las dimensiones de la matriz frame
     initial_h, initial_w, _ = frame.shape
@@ -92,17 +90,22 @@ def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_o
     #luego agregando uno nuevo en posicion 1
     resized_image = np.expand_dims(resized_frame.transpose(2, 0, 1), 0)
     
+    #ver_results = execution_net.infer(inputs={ver_input: resized_image}).keys()
     ver_results = execution_net.infer(inputs={ver_input: resized_image}).get(ver_output)
-    print(ver_results)
-    # print(type(ver_results))
-    # print(type(ver_results[0]))
-    # print(ver_results[0])
-    # print(ver_results[-1])
-    # print(len(ver_results))
 
     for detection in ver_results:
-        label = int(detection[1])
-        accuracy = float(detection[2])
+        ver_confidence = detection[4]
+        if ver_confidence < confidence:
+            continue 
+
+        xmin = int(detection[0] * initial_w / MODEL_FRAME_SIZE)
+        ymin = int(detection[1] * initial_h / MODEL_FRAME_SIZE)
+        xmax = int(detection[2] * initial_w / MODEL_FRAME_SIZE)
+        ymax = int(detection[3] * initial_h / MODEL_FRAME_SIZE)
+        xmin = max(0, xmin - 5)
+        xmax = min(xmax + 5, initial_w - 1)
+        ymax = min(ymax + 5, initial_h - 1)
+
         det_color = BLUE if label == 1 else RED
         # Draw only objects when accuracy is greater than configured threshold
         if accuracy > confidence_threshold:
@@ -124,7 +127,7 @@ def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_o
                     thickness=2,
                 )
 
-    showImg = imutils.resize(frame, height=600)
+    showImg = imutils.resize(frame, height=750)
     cv2.imshow("showImg", showImg)
 
 def detection2021(ver_results):
