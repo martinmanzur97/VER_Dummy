@@ -6,8 +6,8 @@ import numpy as np
 import time
 import datetime
 
-#video_path = "./video/in.mp4"
-video_path = "../BlindspotFront.mp4"
+video_path = "./video/in.mp4"
+#video_path = "../BlindspotFront.mp4"
 model_xml = "./model/person-detection-0303.xml"
 model_bin = "./model/person-detection-0303.bin"
 # model_xml = "./model/pedestrian-and-vehicle-detector-adas-0001.xml"
@@ -18,9 +18,9 @@ RED = (0, 0, 255)
 confidence = 0.6
 
 def crop_frame(frame):
-    # paso 3 recortar el frame
-    # By default, keep the original frame and select complete area
+    #consigue los datos de la imagen, alto y ancho
     frame_height, frame_width = frame.shape[:-1]
+    #determina un area de recorte entre el principio y fin de los pixeles
     detection_area = [[0, 0], [frame_width, frame_height]]
     top_left_crop = (0, 0)
     bottom_right_crop = (frame_width, frame_height)
@@ -92,45 +92,35 @@ def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_o
     
     #ver_results = execution_net.infer(inputs={ver_input: resized_image}).keys()
     ver_results = execution_net.infer(inputs={ver_input: resized_image}).get(ver_output)
-
     for detection in ver_results:
         ver_confidence = detection[4]
-        if ver_confidence < confidence:
-            continue 
+        # if ver_confidence < confidence:
+        #     break 
 
-        xmin = int(detection[0] * initial_w / MODEL_FRAME_SIZE)
-        ymin = int(detection[1] * initial_h / MODEL_FRAME_SIZE)
-        xmax = int(detection[2] * initial_w / MODEL_FRAME_SIZE)
-        ymax = int(detection[3] * initial_h / MODEL_FRAME_SIZE)
-        xmin = max(0, xmin - 5)
-        xmax = min(xmax + 5, initial_w - 1)
-        ymax = min(ymax + 5, initial_h - 1)
+        xmin = int(detection[0] * initial_w)
+        ymin = int(detection[1] * initial_h)
+        xmax = int(detection[2] * initial_w)
+        ymax = int(detection[3] * initial_h)
+        # xmin = max(0, xmin - 5)
+        # xmax = min(xmax + 5, initial_w - 1)
+        # ymax = min(ymax + 5, initial_h - 1)
+        x = (xmin + xmax) / 2
+        y = (ymin + ymax) / 2
 
-        det_color = BLUE if label == 1 else RED
-        # Draw only objects when accuracy is greater than configured threshold
-        if accuracy > confidence_threshold:
-            xmin = int(detection[3] * initial_w)
-            ymin = int(detection[4] * initial_h)
-            xmax = int(detection[5] * initial_w)
-            ymax = int(detection[6] * initial_h)
-            # Central points of detection
-            x = (xmin + xmax) / 2
-            y = (ymin + ymax) / 2
-
-            # Check if central points fall inside the detection area
-            if check_detection_area(x, y, detection_area):
-                cv2.rectangle(
-                    frame,
-                    (xmin, ymin),
-                    (xmax, ymax),
-                    det_color,
-                    thickness=2,
+        # Check if central points fall inside the detection area
+        if check_detection_area(x, y, detection_area):
+            cv2.rectangle(
+                frame,
+                (xmin, ymin),
+                (xmax, ymax),
+                BLUE,
+                thickness=2,
                 )
 
     showImg = imutils.resize(frame, height=750)
     cv2.imshow("showImg", showImg)
 
-def detection2021(ver_results):
+def old_ver_detection(ver_results):
 
     for detection in ver_results[0]:
         label = int(detection[1])
@@ -160,8 +150,6 @@ def detection2021(ver_results):
     cv2.imshow("showImg", showImg)
 
 
-
-
 def drawText(frame, scale, rectX, rectY, rectColor, text):
     #funcion para escribir texto en imagen
     rectThickness = 2
@@ -187,6 +175,7 @@ def main():
     success, img = vidcap.read()
     #recorta el frame estableciendo el area de deteccion
     detection = crop_frame(img)
+    print(detection)
     #mientras haya obtenido el frame de manera correcta
     while success:
         vehicle_event_recognition(img,ver_neural_net,ver_execution_net,ver_input_blob,ver_output_blob, detection)
