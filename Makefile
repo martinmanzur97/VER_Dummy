@@ -8,7 +8,7 @@ export VIRTUAL_ENV = .env
 download_models::
 	./scripts/download_model.sh person-detection-0303
 
-run_enviroment:
+run_env:
 	@echo "Creating and Activating Virtual Environment"
 	$(MIDDLEWARE_FOLDER)/scripts/config_virtual_env.sh $(PIP) $(PYTHON) $(VIRTUAL_ENV)
 
@@ -18,4 +18,4 @@ run-file:
 test:
 	$(PYTHON) $(REPO_FOLDER)/test_file.py
 
-start: download_models run_enviroment run-file
+start: download_models run_env run-file
