@@ -73,8 +73,12 @@ def crop_frame(frame):
         detection_area = [(0, 0),(bottom_right_crop[0] - top_left_crop[0],bottom_right_crop[1] - top_left_crop[1],),]
     return detection_area
 
-path = "./img/picture2.jpeg"
-img = cv2.imread(path)
-# print(img)
-det = crop_frame(img)
-# print(det)
+# path = "./img/picture2.jpeg"
+# img = cv2.imread(path)
+# # print(img)
+# det = crop_frame(img)
+# # print(det)
+
+now = time.time() # time when we finish processing for this frame
+fps = 1/(now-prev_frame_time) # Calculating the fps
+prev_frame_time = now
