@@ -6,15 +6,18 @@ import numpy as np
 import time
 import datetime
 
+#video de origin para detecciones
 video_path = "./video/in.mp4"
 #video_path = "../BlindspotFront.mp4"
+#modelos de openvino
 model_xml = "./model/person-detection-0303.xml"
 model_bin = "./model/person-detection-0303.bin"
-# model_xml = "./model/pedestrian-and-vehicle-detector-adas-0001.xml"
-# model_bin = "./model/pedestrian-and-vehicle-detector-adas-0001.bin"
+#dispositivo
 device = "CPU"
+#colores para el cuadro de la deteccion
 BLUE = (255, 0, 0)
 RED = (0, 0, 255)
+#parametro para filtrar detecciones en base a la confianza
 confidence = 0.6
 
 def crop_frame(frame):
@@ -40,16 +43,15 @@ def crop_frame(frame):
     return detection_area
 
 def check_detection_area(x, y, detection_area):
-    #verifica que el area de deteccion tenga tamaño 2 si no tira error
+    #verifica que el area de deteccion tenga tamaño 2 por las dos dimensiones (alto por ancho) si no tira error
     if len(detection_area) != 2:
         raise ValueError("Invalid number of points in detection area")
-    #establece limites del area
+    #establece limites del area en base a lo recibido al recorte resultado de crop_frame, donde top left son 0 en el eje, y bottom right son los maximos en pixeles
     top_left = detection_area[0]
     bottom_right = detection_area[1]
-    #en base a los 
     xmin, ymin = top_left[0], top_left[1]
     xmax, ymax = bottom_right[0], bottom_right[1]
-    # Check if the point is inside a ROI
+    # Retorna True si los parametros que pasan estan dentro del area de deteccion, False si no
     return xmin < x and x < xmax and ymin < y and y < ymax
 
 
