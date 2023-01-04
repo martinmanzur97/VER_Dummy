@@ -47,9 +47,9 @@ def crop_frame(frame):
     if int(roi[2]) != 0 and int(roi[3]) != 0:
         x_tl, y_tl = int(roi[0]), int(roi[1])
         x_br, y_br = int(roi[0] + roi[2]), int(roi[1] + roi[3])
-        detection_area = [(x_tl, y_tl),(x_br, y_br),]
+        detection_area = [(x_tl, y_tl),(x_br, y_br)]
     else:
-        detection_area = [(0, 0),(bottom_right_crop[0] - top_left_crop[0],bottom_right_crop[1] - top_left_crop[1],),]
+        detection_area = [(0, 0),(bottom_right_crop[0] - top_left_crop[0],bottom_right_crop[1] - top_left_crop[1],)]
     return detection_area
 
 
@@ -113,7 +113,7 @@ def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_o
 
         # marca las detecciones con un rectangulo si cumplen con estar dentro del area de deteccion
         if check_detection_area(x, y, detection_area):
-            cv2.rectangle(frame,(xmin, ymin),(xmax, ymax),RED,thickness=2,)
+            cv2.rectangle(frame,(xmin, ymin),(xmax, ymax),RED,thickness=2)
 
 def main():
 
