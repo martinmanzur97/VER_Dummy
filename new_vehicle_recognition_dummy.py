@@ -130,8 +130,6 @@ def main():
     vidcap = cv2.VideoCapture(video_path)
     #devuelve tupla con booleano y los datos del frame en forma de matriz
     success, img = vidcap.read()
-    print(img)
-    exit(0)
     #recorta el frame estableciendo el area de deteccion
     detection = crop_frame(img)
     #mientras haya obtenido el frame de manera correcta
