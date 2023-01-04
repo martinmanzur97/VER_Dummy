@@ -11,3 +11,5 @@ ${PYTHON} -m venv ${ENV_FOLDER}
 source ${ENV_FOLDER}/bin/activate
 
 ${PIP} install -r ${SCRIPT_DIR}/requirements.txt
+
+${PIP} list
