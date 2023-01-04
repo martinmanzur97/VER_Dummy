@@ -20,4 +20,4 @@ test:
 list:
 	@echo "$(REPO_FOLDER)"
 
-start: download_models run_env run_python
+run: download_models run_env run_python
