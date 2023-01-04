@@ -7,20 +7,28 @@ import time
 import datetime
 
 #video de origen para detecciones
-#video_path = "./video/in.mp4"
-video_path = "../BlindspotFront.mp4"
+video_path = "./video/in.mp4"
+#video_path = "../BlindspotFront.mp4"
+
 #modelos de openvino
 model_xml = "./model/person-detection-0303.xml"
 model_bin = "./model/person-detection-0303.bin"
+
 #dispositivo
 device = "CPU"
+
 #colores para el cuadro de la deteccion
 BLUE = (255, 0, 0)
 RED = (0, 0, 255)
+
 #parametro para filtrar detecciones en base a la confianza
 confidence = 0.6
 MODEL_HEIGHT = 720
 MODEL_WIDTH = 1280
+
+#setear los frame time en 0 antes de empezar a contar
+new_frame_time = 0 
+prev_frame_time = 0
 
 
 def crop_frame(frame):
@@ -30,23 +38,23 @@ def crop_frame(frame):
     detection_area = [[0, 0], [frame_width, frame_height]]
     top_left_crop = (0, 0)
     bottom_right_crop = (frame_width, frame_height)
-    # setea el nombre e invoca a selectroi que selecciona una porcion del frame
+    #setea el nombre de la ventana e invoca a selectroi que selecciona una porcion del frame
     window_name_roi = "Select Detection Area."
     roi = cv2.selectROI(window_name_roi, frame, False)
     cv2.destroyAllWindows()
+    #organiza los resultados de selectROI en una lista de 2 tuplas para sea procesada luego por check_detection area
+    #si no se selecciono nada por defecto toma todo el frame y por ultimo retorna los valores
     if int(roi[2]) != 0 and int(roi[3]) != 0:
         x_tl, y_tl = int(roi[0]), int(roi[1])
         x_br, y_br = int(roi[0] + roi[2]), int(roi[1] + roi[3])
-        detection_area = [
-            (x_tl, y_tl),
-            (x_br, y_br),
-        ]
+        detection_area = [(x_tl, y_tl),(x_br, y_br),]
     else:
         detection_area = [(0, 0),(bottom_right_crop[0] - top_left_crop[0],bottom_right_crop[1] - top_left_crop[1],),]
     return detection_area
 
+
 def check_detection_area(x, y, detection_area):
-    #verifica que el area de deteccion tenga tamaño 2 por las dos dimensiones (alto por ancho) si no tira error
+    #verifica que el area de deteccion tenga tamaño 2 por los dos elementos establecidos en crop_frame
     if len(detection_area) != 2:
         raise ValueError("Invalid number of points in detection area")
     #establece limites del area en base a lo recibido al recorte resultado de crop_frame, donde top left son 0 en el eje, y bottom right son los maximos en pixeles
@@ -57,34 +65,16 @@ def check_detection_area(x, y, detection_area):
     # Retorna True si los parametros que pasan estan dentro del area de deteccion, False si no
     return xmin < x and x < xmax and ymin < y and y < ymax
 
+
 def fps_counter(frame):
-    #FPS Counter
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    new_frame_time = 0
-    prev_frame_time = 0
-    new_frame_time = time.time() # time when we finish processing for this frame
-    fps = 1/(new_frame_time-prev_frame_time) # Calculating the fps
-    prev_frame_time = new_frame_time
-    fps = int(fps) # converting the fps into integer
-    fps = str(fps) # converting the fps to string so that we can display it on frame
-    cv2.putText(frame, fps, (7, 70), font, 2, (100, 255, 0), 3, cv2.LINE_AA)
-
-
-def fps_counter2(frame):
-    fps_start = 0
-    fps = 0
-
-    fps_end = time.time()
-    time_diff = fps_end - fps_start
-    fps = 1/time_diff
-    fps_start = fps_end
-
-    fps_text = "FPS: {:.2f}".format(fps)
+    global new_frame_time, prev_frame_time
     font = cv2.FONT_HERSHEY_COMPLEX
-
-    cv2.putText(frame,fps_text,(7,70),font,1,(0,255,255),1)
-
-
+    new_frame_time = time.time() 
+    fps = 1/(new_frame_time-prev_frame_time) 
+    prev_frame_time = new_frame_time
+    fps = int(fps)
+    fps = str(fps)
+    cv2.putText(frame, fps, (7, 70), font, 2, BLUE, 3)
 
 
 def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_output, detection_area):
@@ -123,21 +113,7 @@ def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_o
 
         # marca las detecciones con un rectangulo si cumplen con estar dentro del area de deteccion
         if check_detection_area(x, y, detection_area):
-            cv2.rectangle(
-                frame,
-                (xmin, ymin),
-                (xmax, ymax),
-                RED,
-                thickness=2,
-                )
-
-def drawText(frame, scale, rectX, rectY, rectColor, text):
-    #funcion para escribir texto en imagen
-    rectThickness = 2
-    textSize, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, scale, 3)
-    top = max(rectY - rectThickness, textSize[0])
-    cv2.putText(frame, text, (rectX, top), cv2.FONT_HERSHEY_SIMPLEX, scale, rectColor, 3)
-
+            cv2.rectangle(frame,(xmin, ymin),(xmax, ymax),RED,thickness=2,)
 
 def main():
 
@@ -154,25 +130,20 @@ def main():
     vidcap = cv2.VideoCapture(video_path)
     #devuelve tupla con booleano y los datos del frame en forma de matriz
     success, img = vidcap.read()
+    print(img)
+    exit(0)
     #recorta el frame estableciendo el area de deteccion
     detection = crop_frame(img)
     #mientras haya obtenido el frame de manera correcta
-    new_frame_time = 0 
-    prev_frame_time = 0
+
     while success:
         success, img = vidcap.read()
         vehicle_event_recognition(img,ver_neural_net,ver_execution_net,ver_input_blob,ver_output_blob, detection)
-        if cv2.waitKey(10) == 27:  # exit if Escape is hit
+        if cv2.waitKey(10) == 27:  
             break
         fps_counter(img)
-        # fps_counter2(img)
-        # font = cv2.FONT_HERSHEY_SIMPLEX
-        # new_frame_time = time.time() # time when we finish processing for this frame
-        # fps = 1/(new_frame_time-prev_frame_time) # Calculating the fps
-        # prev_frame_time = new_frame_time
-        # fps = int(fps) # converting the fps into integer
-        # fps = str(fps) # converting the fps to string so that we can display it on frame
-        # cv2.putText(img, fps, (0, 0), font, 3, RED, 3)
+
+
 
         showImg = imutils.resize(img, height=500)
         cv2.imshow("showImg", showImg)

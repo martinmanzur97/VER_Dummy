@@ -5,7 +5,6 @@ PYTHON=$2
 ENV_FOLDER=$3
 
 sudo -A apt-get install -y python3-venv
-sudo -A apt-get install -y etcd-client
 
 ${PYTHON} -m venv ${ENV_FOLDER}
 

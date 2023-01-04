@@ -4,6 +4,7 @@ from openvino.inference_engine import IECore
 import imutils
 import numpy as np
 import time
+import datetime
 
 video_path = "./video/in.mp4"
 
@@ -61,6 +62,7 @@ def crop_frame(frame):
     # Select detection area
     window_name_roi = "Select Detection Area."
     roi = cv2.selectROI(window_name_roi, frame, False)
+    print(roi)
     cv2.destroyAllWindows()
     if int(roi[2]) != 0 and int(roi[3]) != 0:
         x_tl, y_tl = int(roi[0]), int(roi[1])
@@ -73,12 +75,7 @@ def crop_frame(frame):
         detection_area = [(0, 0),(bottom_right_crop[0] - top_left_crop[0],bottom_right_crop[1] - top_left_crop[1],),]
     return detection_area
 
-# path = "./img/picture2.jpeg"
-# img = cv2.imread(path)
-# # print(img)
-# det = crop_frame(img)
-# # print(det)
-
-now = time.time() # time when we finish processing for this frame
-fps = 1/(now-prev_frame_time) # Calculating the fps
-prev_frame_time = now
+path = "./img/picture2.jpeg"
+img = cv2.imread(path)
+det = crop_frame(img)
+print(det)
