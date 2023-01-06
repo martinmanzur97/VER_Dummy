@@ -20,6 +20,7 @@ device = "CPU"
 #colores para el cuadro de la deteccion
 BLUE = (255, 0, 0)
 RED = (0, 0, 255)
+GREEN = (0, 255, 0)
 
 #parametro para filtrar detecciones en base a la confianza
 confidence = 0.6
@@ -68,13 +69,13 @@ def check_detection_area(x, y, detection_area):
 
 def fps_counter(frame):
     global new_frame_time, prev_frame_time
-    font = cv2.FONT_HERSHEY_COMPLEX
+    font = cv2.FONT_HERSHEY_SIMPLEX
     new_frame_time = time.time() 
     fps = 1/(new_frame_time-prev_frame_time) 
     prev_frame_time = new_frame_time
     fps = int(fps)
     fps = str(fps)
-    cv2.putText(frame, fps, (7, 70), font, 2, BLUE, 3)
+    cv2.putText(frame, "fps:"+fps, (7, 70), font, 2, GREEN, 2)
 
 
 def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_output, detection_area):
@@ -101,19 +102,19 @@ def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_o
         if ver_confidence < confidence:
             break 
         #de las detecciones
-        xmin = int(detection[0] * initial_w / MODEL_WIDTH)
-        ymin = int(detection[1] * initial_h / MODEL_HEIGHT)
-        xmax = int(detection[2] * initial_w / MODEL_WIDTH)
-        ymax = int(detection[3] * initial_h / MODEL_HEIGHT)
-        xmin = max(0, xmin - 5)
-        xmax = min(xmax + 5, initial_w - 1)
-        ymax = min(ymax + 5, initial_h - 1)
-        x = (xmin + xmax) / 2
-        y = (ymin + ymax) / 2
+        xmin = int(detection[0]*initial_w/MODEL_WIDTH)
+        ymin = int(detection[1]*initial_h/MODEL_HEIGHT)
+        xmax = int(detection[2]*initial_w/MODEL_WIDTH)
+        ymax = int(detection[3]*initial_h/MODEL_HEIGHT)
+        xmin = max(0, xmin-5)
+        xmax = min(xmax+5, initial_w-1)
+        ymax = min(ymax+5, initial_h-1)
+        x = (xmin+xmax)/2
+        y = (ymin+ymax)/2
 
         # marca las detecciones con un rectangulo si cumplen con estar dentro del area de deteccion
         if check_detection_area(x, y, detection_area):
-            cv2.rectangle(frame,(xmin, ymin),(xmax, ymax),RED,thickness=2)
+            cv2.rectangle(frame, (xmin, ymin), (xmax, ymax),RED, thickness=2)
 
 def main():
 
@@ -140,12 +141,7 @@ def main():
         if cv2.waitKey(10) == 27:  
             break
         fps_counter(img)
-
-
-
         showImg = imutils.resize(img, height=500)
         cv2.imshow("showImg", showImg)
-
-
 
 main()

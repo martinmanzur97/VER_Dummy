@@ -1,0 +1,9 @@
+# Ignoring Python modules and cache
+/.python_modules/
+**/__pychache__/
+
+# Ignoring Virtual Environment
+env/
+
+# Ignoring Models
+model/
