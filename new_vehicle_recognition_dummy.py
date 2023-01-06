@@ -4,7 +4,6 @@ from openvino.inference_engine import IECore
 import imutils
 import numpy as np
 import time
-import datetime
 
 #video de origen para detecciones
 video_path = "./video/in.mp4"
@@ -17,7 +16,7 @@ model_bin = "./model/person-detection-0303.bin"
 #dispositivo
 device = "CPU"
 
-#colores para el cuadro de la deteccion
+#colores para utilizar con opencv
 BLUE = (255, 0, 0)
 RED = (0, 0, 255)
 GREEN = (0, 255, 0)
