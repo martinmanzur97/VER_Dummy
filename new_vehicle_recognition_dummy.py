@@ -6,8 +6,8 @@ import numpy as np
 import time
 
 #video de origen para detecciones
-video_path = "./video/in.mp4"
-#video_path = "../BlindspotFront.mp4"
+#video_path = "./video/in.mp4"
+video_path = "../BlindspotFront.mp4"
 
 #modelos de openvino
 model_xml = "./model/person-detection-0303.xml"
@@ -141,6 +141,9 @@ def main():
             break
         fps_counter(img)
         showImg = imutils.resize(img, height=500)
-        cv2.imshow("showImg", showImg)
+        cv2.imshow("VER - Dummy Demo", showImg)
+
+
+
 
 main()

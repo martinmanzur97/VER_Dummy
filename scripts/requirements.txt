@@ -1,4 +1,3 @@
-openvino==2022.3.0
 imutils
 numpy
 opencv-python
