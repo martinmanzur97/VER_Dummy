@@ -23,8 +23,6 @@ GREEN = (0, 255, 0)
 
 #parametro para filtrar detecciones en base a la confianza
 confidence = 0.6
-MODEL_HEIGHT = 720
-MODEL_WIDTH = 1280
 
 #setear los frame time en 0 antes de empezar a contar
 new_frame_time = 0 
@@ -87,24 +85,15 @@ def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_o
     #formatea la matriz para que tenga la forma especificada en el modelo dejando el elemento 3 primero, 1 segundo, y 2 tercero y luego agregando uno nuevo en posicion 1
     resized_image = np.expand_dims(resized_frame.transpose(2, 0, 1), 0)
     
-    #ver_results = execution_net.infer(inputs={ver_input: resized_image}).keys()
-    #
-    #
-    #
-    #COMENTAR
-    #
-    #
-    #
     ver_results = execution_net.infer(inputs={ver_input: resized_image}).get(ver_output)
     for detection in ver_results:
         ver_confidence = detection[4]
         if ver_confidence < confidence:
             break 
-        #de las detecciones
-        xmin = int(detection[0]*initial_w/MODEL_WIDTH)
-        ymin = int(detection[1]*initial_h/MODEL_HEIGHT)
-        xmax = int(detection[2]*initial_w/MODEL_WIDTH)
-        ymax = int(detection[3]*initial_h/MODEL_HEIGHT)
+        xmin = int(detection[0]*initial_w/W)
+        ymin = int(detection[1]*initial_h/H)
+        xmax = int(detection[2]*initial_w/W)
+        ymax = int(detection[3]*initial_h/H)
         xmin = max(0, xmin-5)
         xmax = min(xmax+5, initial_w-1)
         ymax = min(ymax+5, initial_h-1)
@@ -142,8 +131,5 @@ def main():
         fps_counter(img)
         showImg = imutils.resize(img, height=500)
         cv2.imshow("VER - Dummy Demo", showImg)
-
-
-
 
 main()
