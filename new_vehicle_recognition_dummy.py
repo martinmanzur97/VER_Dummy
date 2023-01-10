@@ -4,10 +4,12 @@ from openvino.inference_engine import IECore
 import imutils
 import numpy as np
 import time
+from datetime import datetime
+
 
 #video de origen para detecciones
-#video_path = "./video/in.mp4"
-video_path = "../BlindspotFront.mp4"
+video_path = "./video/in.mp4"
+#video_path = "../BlindspotFront.mp4"
 
 #modelos de openvino
 model_xml = "./model/person-detection-0303.xml"
@@ -25,9 +27,26 @@ GREEN = (0, 255, 0)
 confidence = 0.6
 
 #setear los frame time en 0 antes de empezar a contar
-new_frame_time = 0 
-prev_frame_time = 0
+initial_dt = datetime.now()
+initial_ts = int(datetime.timestamp(initial_dt))
+fps = 0
+# exit(0)   
 
+def new_fps_counter(frame):
+    global initial_dt
+    global initial_ts
+    global fps
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    dt = datetime.now()
+    ts = int(datetime.timestamp(dt))
+    if ts > initial_ts:
+        print("FPS: ", fps)
+        cv2.putText(frame, "fps:"+str(int(fps)), (7, 70), font, 2, GREEN, 2)
+        fps = 0
+        initial_ts = ts
+    else:
+        fps += 1
+        
 
 def crop_frame(frame):
     #consigue los datos de la imagen, alto y ancho
@@ -128,7 +147,7 @@ def main():
         vehicle_event_recognition(img,ver_neural_net,ver_execution_net,ver_input_blob,ver_output_blob, detection)
         if cv2.waitKey(10) == 27:  
             break
-        fps_counter(img)
+        new_fps_counter(img)
         showImg = imutils.resize(img, height=500)
         cv2.imshow("VER - Dummy Demo", showImg)
 

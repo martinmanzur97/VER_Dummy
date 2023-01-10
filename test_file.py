@@ -4,9 +4,14 @@ from openvino.inference_engine import IECore
 import imutils
 import numpy as np
 import time
-import datetime
+from datetime import datetime
 
 video_path = "./video/in.mp4"
+
+
+initial_dt = datetime.now()
+initial_ts = int(datetime.timestamp(initial_dt))    
+fps = 0
 
 def prueba_numpy():
     # lista = [1,2,3,4]
@@ -75,7 +80,14 @@ def crop_frame(frame):
         detection_area = [(0, 0),(bottom_right_crop[0] - top_left_crop[0],bottom_right_crop[1] - top_left_crop[1],),]
     return detection_area
 
-path = "./img/picture2.jpeg"
-img = cv2.imread(path)
-det = crop_frame(img)
-print(det)
+def new_fps_counter(frame):
+    global initial_dt, initial_ts, fps
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    dt = datetime.now()
+    ts = int(datetime.timestamp(dt))
+    if ts > initial_ts:
+        print("FPS: ", fps)
+        fps = 0
+        initial_ts = ts
+    else:
+        fps += 1
