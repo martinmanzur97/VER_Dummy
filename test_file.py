@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 
 video_path = "./video/in.mp4"
-
+frame_path = "./img/test.jpg"
 
 initial_dt = datetime.now()
 initial_ts = int(datetime.timestamp(initial_dt))    
@@ -29,65 +29,13 @@ def prueba_numpy():
     # print(listanp)
     print(shape1)
 
-
-def fps_counter():
-    fps = int(vidcap.get(cv2.CAP_PROP_FPS)) # Acces FPS property
-    font = cv2.FONT_HERSHEY_SIMPLEX # Font to apply on text
-    cv2.putText(img, str(fps), (50,50), font, 1, (0, 0, 255), 2) # Add text on frame
-
 def prueba():
     vidcap = cv2.VideoCapture(video_path)
     success, img = vidcap.read()
     print(vidcap.read())
 
-def frames2():
-    prev_frame_time = 0
-    new_frame_time = 0
-    #FPS Counter
-    ret = True
-    if not ret:
-        exit(0)
-    gray = frame
-    gray = cv2.resize(gray, (500, 300))
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    new_frame_time = time.time()
-    fps = 1/(new_frame_time-prev_frame_time)
-    prev_frame_time = new_frame_time
-    fps = int(fps)
-    fps = str(fps)
-    cv2.putText(gray, fps, (7, 70), font, 2, (100, 255, 0), 3, cv2.LINE_AA)
-
-def crop_frame(frame):
-    # paso 3 recortar el frame
-    # By default, keep the original frame and select complete area
-    frame_height, frame_width = frame.shape[:-1]
-    detection_area = [[0, 0], [frame_width, frame_height]]
-    top_left_crop = (0, 0)
-    bottom_right_crop = (frame_width, frame_height)
-    # Select detection area
+def crop_image(frame):
     window_name_roi = "Select Detection Area."
     roi = cv2.selectROI(window_name_roi, frame, False)
-    print(roi)
-    cv2.destroyAllWindows()
-    if int(roi[2]) != 0 and int(roi[3]) != 0:
-        x_tl, y_tl = int(roi[0]), int(roi[1])
-        x_br, y_br = int(roi[0] + roi[2]), int(roi[1] + roi[3])
-        detection_area = [
-            (x_tl, y_tl),
-            (x_br, y_br),
-        ]
-    else:
-        detection_area = [(0, 0),(bottom_right_crop[0] - top_left_crop[0],bottom_right_crop[1] - top_left_crop[1],),]
-    return detection_area
-
-def new_fps_counter(frame):
-    global initial_dt, initial_ts, fps
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    dt = datetime.now()
-    ts = int(datetime.timestamp(dt))
-    if ts > initial_ts:
-        print("FPS: ", fps)
-        fps = 0
-        initial_ts = ts
-    else:
-        fps += 1
+    #img = cv2.imread("lenna.png")
+    crop_img = img[y:y+h, x:x+w]

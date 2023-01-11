@@ -2,8 +2,14 @@
 /.python_modules/
 **/__pychache__/
 
-# Ignoring Virtual Environment
+#Virtual Environment
 venv/
 
-# Ignoring Models
+#Models
 model/
+
+#Images
+img/
+
+#Videos
+video/
