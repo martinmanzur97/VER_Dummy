@@ -33,9 +33,7 @@ fps = 0
 # exit(0)   
 
 def new_fps_counter(frame):
-    global initial_dt
-    global initial_ts
-    global fps
+    global initial_dt, initial_ts, fps
     font = cv2.FONT_HERSHEY_SIMPLEX
     dt = datetime.now()
     ts = int(datetime.timestamp(dt))
@@ -46,17 +44,17 @@ def new_fps_counter(frame):
         initial_ts = ts
     else:
         fps += 1
-        
 
-def crop_frame(frame):
+
+def crop_frame(frame, message):
     #consigue los datos de la imagen, alto y ancho
     frame_height, frame_width = frame.shape[:-1]
-    #determina un area de recorte entre el principio y fin de los pixeles
+    #determina un area de recorte entre el principio y fin de los pixeles como default
     detection_area = [[0, 0], [frame_width, frame_height]]
     top_left_crop = (0, 0)
     bottom_right_crop = (frame_width, frame_height)
     #setea el nombre de la ventana e invoca a selectroi que selecciona una porcion del frame
-    window_name_roi = "Select Detection Area."
+    window_name_roi = message
     roi = cv2.selectROI(window_name_roi, frame, False)
     cv2.destroyAllWindows()
     #organiza los resultados de selectROI en una lista de 2 tuplas para sea procesada luego por check_detection area
@@ -83,7 +81,7 @@ def check_detection_area(x, y, detection_area):
     return xmin < x and x < xmax and ymin < y and y < ymax
 
 
-def fps_counter(frame):
+def old_fps_counter(frame):
     global new_frame_time, prev_frame_time
     font = cv2.FONT_HERSHEY_SIMPLEX
     new_frame_time = time.time() 
@@ -139,16 +137,22 @@ def main():
     #devuelve tupla con booleano y los datos del frame en forma de matriz
     success, img = vidcap.read()
     #recorta el frame estableciendo el area de deteccion
-    detection = crop_frame(img)
+    cropped_frame = crop_frame(img, "Crop Image")
+    frame = img
+    frame = frame[cropped_frame[0][1] : cropped_frame[1][1],cropped_frame[0][0] : cropped_frame[1][0]]
+    frame = cv2.resize(frame,(cropped_frame[1][0] - cropped_frame[0][0],cropped_frame[1][1] - cropped_frame[0][1]))
+    detection = crop_frame(frame, "Select Detection Area")
     #mientras haya obtenido el frame de manera correcta
 
     while success:
         success, img = vidcap.read()
-        vehicle_event_recognition(img,ver_neural_net,ver_execution_net,ver_input_blob,ver_output_blob, detection)
+        frame = img[cropped_frame[0][1] : cropped_frame[1][1],cropped_frame[0][0] : cropped_frame[1][0]]
+        
+        vehicle_event_recognition(frame,ver_neural_net,ver_execution_net,ver_input_blob,ver_output_blob, detection)
         if cv2.waitKey(10) == 27:  
             break
-        new_fps_counter(img)
-        showImg = imutils.resize(img, height=500)
+        #new_fps_counter(img)
+        showImg = cv2.resize(frame,(cropped_frame[1][0] - cropped_frame[0][0],cropped_frame[1][1] - cropped_frame[0][1]))
         cv2.imshow("VER - Dummy Demo", showImg)
 
 main()
