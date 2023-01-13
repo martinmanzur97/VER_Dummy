@@ -53,7 +53,6 @@ def crop_frame(frame, message):
         detection_area = [(0, 0),(bottom_right_crop[0] - top_left_crop[0],bottom_right_crop[1] - top_left_crop[1],)]
     return detection_area
 
-
 def check_detection_area(x, y, detection_area):
     #verifica que el area de deteccion tenga tamaño 2 por los dos elementos establecidos en crop_frame
     if len(detection_area) != 2:
@@ -95,7 +94,7 @@ def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_o
         if check_detection_area(x, y, detection_area):
             cv2.rectangle(frame, (xmin, ymin), (xmax, ymax),RED, thickness=2)
 
-def new_fps_counter(frame):
+def fps_counter(frame):
     global initial_dt, initial_ts, fps, old_fps
     dt = datetime.now()
     ts = int(datetime.timestamp(dt))
@@ -122,7 +121,6 @@ def main():
 
     #paso 1 capturar frame utilizando un video como archivo de origen el video_path
     vidcap = cv2.VideoCapture(video_path)
-    fps_cap = vidcap.get(cv2.CAP_PROP_FPS)
     #devuelve tupla con booleano y los datos del frame en forma de matriz
     success, img = vidcap.read()
     #recorta el frame estableciendo el area de deteccion
@@ -135,14 +133,13 @@ def main():
 
     while success:
         success, img = vidcap.read()
-        dt = str(datetime.now())
         frame = img[cropped_frame[0][1] : cropped_frame[1][1],cropped_frame[0][0] : cropped_frame[1][0]]
 
         vehicle_event_recognition(frame,ver_neural_net,ver_execution_net,ver_input_blob,ver_output_blob, detection)
         if cv2.waitKey(10) == 27:  
             break
         #cv2.putText(frame, "fps:"+str(int(fps_cap)), (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 2, GREEN, 2)
-        new_fps_counter(frame)
+        fps_counter(frame)
 
         showImg = cv2.resize(frame,(cropped_frame[1][0] - cropped_frame[0][0],cropped_frame[1][1] - cropped_frame[0][1]))
         cv2.imshow("VER - Dummy Demo", showImg)
