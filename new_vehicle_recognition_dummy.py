@@ -1,10 +1,9 @@
 import cv2
 import openvino
 from openvino.inference_engine import IECore
-import imutils
 import numpy as np
-import time
 from datetime import datetime
+import json
 
 
 #video de origen para detecciones
@@ -30,20 +29,7 @@ confidence = 0.6
 initial_dt = datetime.now()
 initial_ts = int(datetime.timestamp(initial_dt))
 fps = 0
-# exit(0)   
-
-def new_fps_counter(frame):
-    global initial_dt, initial_ts, fps
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    dt = datetime.now()
-    ts = int(datetime.timestamp(dt))
-    if ts > initial_ts:
-        print("FPS: ", fps)
-        cv2.putText(frame, "fps:"+str(int(fps)), (7, 70), font, 2, GREEN, 2)
-        fps = 0
-        initial_ts = ts
-    else:
-        fps += 1
+old_fps = 0
 
 
 def crop_frame(frame, message):
@@ -80,18 +66,6 @@ def check_detection_area(x, y, detection_area):
     # Retorna True si los parametros que pasan estan dentro del area de deteccion, False si no
     return xmin < x and x < xmax and ymin < y and y < ymax
 
-
-def old_fps_counter(frame):
-    global new_frame_time, prev_frame_time
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    new_frame_time = time.time() 
-    fps = 1/(new_frame_time-prev_frame_time) 
-    prev_frame_time = new_frame_time
-    fps = int(fps)
-    fps = str(fps)
-    cv2.putText(frame, "fps:"+fps, (7, 70), font, 2, GREEN, 2)
-
-
 def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_output, detection_area):
     #obtiene parametros del modelo, B - batch size, C - number of channels, H - image height, W - image width
     B, C, H, W = neural_net.input_info[ver_input].tensor_desc.dims 
@@ -121,6 +95,20 @@ def vehicle_event_recognition(frame, neural_net, execution_net, ver_input, ver_o
         if check_detection_area(x, y, detection_area):
             cv2.rectangle(frame, (xmin, ymin), (xmax, ymax),RED, thickness=2)
 
+def new_fps_counter(frame):
+    global initial_dt, initial_ts, fps, old_fps
+    dt = datetime.now()
+    ts = int(datetime.timestamp(dt))
+
+    if ts > initial_ts:
+        print("FPS: ", fps)
+        old_fps = fps
+        fps = 0
+        initial_ts = ts
+    else:
+        fps += 1
+    cv2.putText(frame, "fps:"+str(int(old_fps)), (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 2, GREEN, 2)
+
 def main():
 
     #se instancia un objeto IEcore para trabajar con openvino
@@ -134,6 +122,7 @@ def main():
 
     #paso 1 capturar frame utilizando un video como archivo de origen el video_path
     vidcap = cv2.VideoCapture(video_path)
+    fps_cap = vidcap.get(cv2.CAP_PROP_FPS)
     #devuelve tupla con booleano y los datos del frame en forma de matriz
     success, img = vidcap.read()
     #recorta el frame estableciendo el area de deteccion
@@ -146,12 +135,15 @@ def main():
 
     while success:
         success, img = vidcap.read()
+        dt = str(datetime.now())
         frame = img[cropped_frame[0][1] : cropped_frame[1][1],cropped_frame[0][0] : cropped_frame[1][0]]
-        
+
         vehicle_event_recognition(frame,ver_neural_net,ver_execution_net,ver_input_blob,ver_output_blob, detection)
         if cv2.waitKey(10) == 27:  
             break
-        #new_fps_counter(img)
+        #cv2.putText(frame, "fps:"+str(int(fps_cap)), (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 2, GREEN, 2)
+        new_fps_counter(frame)
+
         showImg = cv2.resize(frame,(cropped_frame[1][0] - cropped_frame[0][0],cropped_frame[1][1] - cropped_frame[0][1]))
         cv2.imshow("VER - Dummy Demo", showImg)
 
