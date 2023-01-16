@@ -1,21 +1,23 @@
 import cv2
-import openvino
+import imutils
 from openvino.inference_engine import IECore
 import numpy as np
 from datetime import datetime
 import json
 
+path = "./constants.json"
+file=open(path)
+data=json.load(file)
 
 #video de origen para detecciones
-video_path = "./video/in.mp4"
-#video_path = "../BlindspotFront.mp4"
+video_path = data.get("video_path1")
 
 #modelos de openvino
-model_xml = "./model/person-detection-0303.xml"
-model_bin = "./model/person-detection-0303.bin"
+model_xml = data.get("model_xml")
+model_bin = data.get("model_bin")
 
 #dispositivo
-device = "CPU"
+device = data.get("device")
 
 #colores para utilizar con opencv
 BLUE = (255, 0, 0)
@@ -23,7 +25,7 @@ RED = (0, 0, 255)
 GREEN = (0, 255, 0)
 
 #parametro para filtrar detecciones en base a la confianza
-confidence = 0.6
+confidence = data.get("confidence")
 
 #setear los frame time en 0 antes de empezar a contar
 initial_dt = datetime.now()
@@ -138,10 +140,10 @@ def main():
         vehicle_event_recognition(frame,ver_neural_net,ver_execution_net,ver_input_blob,ver_output_blob, detection)
         if cv2.waitKey(10) == 27:  
             break
-        #cv2.putText(frame, "fps:"+str(int(fps_cap)), (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 2, GREEN, 2)
+        
         fps_counter(frame)
 
-        showImg = cv2.resize(frame,(cropped_frame[1][0] - cropped_frame[0][0],cropped_frame[1][1] - cropped_frame[0][1]))
+        showImg = imutils.resize(frame,400)
         cv2.imshow("VER - Dummy Demo", showImg)
 
 main()

@@ -1,0 +1,8 @@
+{
+    "confidence": 0.6,
+    "model_bin": "./model/person-detection-0303.bin",
+    "model_xml": "./model/person-detection-0303.xml",
+    "video_path1": "./video/in.mp4",
+    "video_path2":"../BlindspotFront.mp4",
+    "device": "CPU"
+}
